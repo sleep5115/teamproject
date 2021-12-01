@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.BoardMapper">
+	<!-- 좋아요 기능 -->
+	<insert id="insert_rec">
+		insert into tbl_board_rec(b_id, user_id)
+		values(#{b_id}, #{user_id})
+	</insert>
+	<!-- 좋아요 취소 -->
+	<delete id="delete_rec">
+		delete from tbl_board_rec
+		where b_id = #{b_id} and user_id = #{user_id}
+	</delete>
+	<!-- 좋아요 변동 -->
+	<update id="add_cnt_rec">
+		update tbl_board set b_rec = b_rec + #{value}
+		where id = #{id}
+	</update>
+	<!-- 좋아요 여부 -->
+	<select id="chk_rec" resultType="int">
+		select count(*) from tbl_board_rec
+		where b_id = #{b_id} and user_id = #{user_id}
+	</select>
+	<!-- 댓글수 변동 -->
+	<update id="add_cnt_reply">
+		update tbl_board set b_cnt_reply = b_cnt_reply + #{value}
+		where id = #{id}
+	</update>
+	<!-- 피드수 변동 -->
+	<update id="add_feed_cnt">
+		update tbl_board set b_cnt_feed = b_cnt_feed + #{value}
+		where id = #{id}
+	</update>
+	<select id="maxCode" resultType="String">
+		select max(id) from tbl_board
+	</select>
+	<update id="updateb_view">
+		update tbl_board set b_view = b_view + 1
+		where id = #{id}
+	</update>
+	<select id="list" resultType="com.example.domain.BoardVO">
+		(select * from tbl_board where b_category = '공지' order by id desc limit 3)
+		union all
+		(select * from tbl_board where b_category != '공지'
+		and (title like concat('%', #{keyword}, '%') 
+		or b_content like concat('%', #{keyword}, '%') 
+		or b_writer like concat('%', #{keyword}, '%'))
+		<if test="searchType != '전체'">
+			and b_category = #{searchType}
+		</if>
+		order by id desc
+		limit #{pageStart}, #{perPageNum})
+	</select>
+	<select id="totalCount" resultType="int">
+		select count(*) from tbl_board
+		where b_category != '공지' and		
+		(title like concat('%', #{keyword}, '%') 
+		or b_content like concat('%', #{keyword}, '%') 
+		or b_writer like concat('%', #{keyword}, '%'))
+		<if test="searchType != '전체'">
+			and b_category = #{searchType}
+		</if>
+	</select>
+	<insert id="insert">
+		insert into tbl_board(b_category, title, b_writer, b_content, b_image)
+		values(#{b_category}, #{title}, #{b_writer}, #{b_content}, #{b_image})
+	</insert>
+	<update id="update">
+		update tbl_board set b_category = #{b_category}, title = #{title}, b_content = #{b_content}, b_image = #{b_image}
+		where id = #{id}
+	</update>
+	<select id="read" resultType="com.example.domain.BoardVO">
+		select * from tbl_board
+		where id = #{id}
+	</select>
+	<delete id="delete">
+		delete from tbl_board
+		where id = #{id}
+	</delete>
+	<delete id="delete_reply">
+		delete from tbl_board_reply
+		where b_id = #{b_id}
+	</delete>
+</mapper>

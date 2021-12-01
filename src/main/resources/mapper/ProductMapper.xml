@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.ProductMapper">
+	<!-- 결제 완료 -->
+	<update id="pay_state">
+		update tbl_purchase_member set pay_state = 1
+		where p_id = #{p_id} and p_member = #{p_member}
+	</update>
+	<!-- 거래 완료 -->
+	<update id="deal_state">
+		update tbl_purchase_member set deal_state = 1
+		where p_id = #{p_id} and p_member = #{p_member}
+	</update>
+	<select id="chk_pay" resultType="int">
+		select pay_state from tbl_purchase_member
+		where p_id = #{p_id} and p_member = #{p_member}
+	</select>
+	<select id="chk_deal" resultType="int">
+		select deal_state from tbl_purchase_member
+		where p_id = #{p_id} and p_member = #{p_member}
+	</select>
+	<select id="cnt_pay_rest" resultType="int">
+		select count(*) from tbl_purchase_member
+		where p_id = #{p_id} and pay_state = 0
+	</select>
+	<select id="cnt_deal_rest" resultType="int">
+		select count(*) from tbl_purchase_member
+		where p_id = #{p_id} and deal_state = 0
+	</select>
+	<!-- 피드수 증가 -->
+	<update id="add_feed_cnt">
+		update tbl_purchase set p_cnt_feed = p_cnt_feed + #{value}
+		where id = #{id}
+	</update>
+	<!-- purchase 삭제시 해당 문의글 삭제 -->
+	<update id="query_state">
+		update tbl_purchase_query set p_state = 1
+		where p_id = #{p_id}
+	</update>
+	<select id="list" resultType="com.example.domain.ProductVO">
+		select * from tbl_purchase
+		where title like concat('%',#{keyword},'%')
+		<!-- 카테고리별 -->
+		<if test="catType=='allCate'">
+		</if>
+		<if test="catType=='ca1'">
+			and p_category='p_food'
+		</if>
+		<if test="catType=='ca2'">
+			and p_category='p_sports'
+		</if>
+		<if test="catType=='ca3'">
+			and p_category='p_beauty'
+		</if>
+		<if test="catType=='ca4'">
+			and p_category='p_fashion'
+		</if>
+		<if test="catType=='ca5'">
+			and p_category='p_digital'
+		</if>
+		
+			<!-- 지역별 -->
+	      <if test ="searchType=='all'">
+	      </if>
+	      <if test ="searchType=='seoul'">
+	         and p_local='서울'
+	      </if>
+	      <if test ="searchType=='incheon'">
+	         and p_local='인천'
+	      </if>
+	      <if test ="searchType=='gyeonggi'">
+	         and p_local='경기도'
+	      </if>
+	      	      <if test ="searchType=='daejeon'">
+	         and p_local='대전'
+	      </if>
+	      <if test ="searchType=='gwangju'">
+	         and p_local='광주'
+	      </if>
+	      <if test ="searchType=='ulsan'">
+	         and p_local='울산'
+	      </if>
+	      <if test ="searchType=='busan'">
+	         and p_local='부산'
+	      </if>
+	      <if test ="searchType=='jeju'">
+	         and p_local='제주'
+	      </if>
+		and p_state = 0
+		order by id desc
+		limit #{pageStart},#{perPageNum};
+		
+	</select>
+	
+	<select id="list_purchase" resultType="com.example.domain.ProductVO">
+		select * from tbl_purchase
+		where id = #{id}
+	</select>
+	<insert id="insert">
+		insert into tbl_purchase(id, title, date_start,
+		date_end, p_writer, p_image, p_local, p_link, p_price, p_salePrice,
+		p_category,
+		p_tot_member,p_content)
+		values(#{id},#{title},#{date_start},#{date_end},#{p_writer},#{p_image},#{p_local},#{p_link},#{p_price},#{p_salePrice},#{p_category},
+		#{p_tot_member},#{p_content})
+	</insert>
+	<select id="read" resultType="com.example.domain.ProductVO">
+		select * from tbl_purchase
+		where
+		id=#{id}
+	</select>
+	<select id="chk_member" resultType="int">
+		select count(*) from
+		tbl_purchase_member
+		where p_id=#{p_id} and p_member = #{p_member}
+	</select>
+	<insert id="insert_member">
+		insert into tbl_purchase_member(p_id, p_member)
+		values(#{p_id}, #{p_member})
+	</insert>
+	<delete id="delete_member">
+		delete from tbl_purchase_member
+		where p_id=#{p_id} and
+		p_member = #{p_member}
+	</delete>
+
+	<select id="totCount" resultType="int">
+		select count(*) from
+		tbl_purchase where p_state = 0;
+	</select>
+	
+	<update id="update">
+		update tbl_purchase set title=#{title},p_link = #{p_link},p_salePrice = #{p_salePrice},p_tot_member = #{p_tot_member},date_start = #{date_start},date_end = #{date_end},
+		p_price=#{p_price}, p_image=#{p_image}, p_category=#{p_category},p_local = #{p_local}, p_content = #{p_content}
+		where id = #{id}
+	</update>
+
+	<delete id="delete">
+		update tbl_purchase set p_state = 1 where id = #{id}
+	</delete>
+
+	<select id="list_query" resultType="com.example.domain.PQueryVO">
+		select * from
+		tbl_purchase_query
+		where p_id = #{p_id}
+		order by p_query_id desc
+	</select>
+
+	<select id="cnt_query" resultType="int">
+		select count(*) from
+		tbl_purchase_query
+		where p_id = #{p_id}
+	</select>
+
+	<insert id="insert_query">
+		insert into
+		tbl_purchase_query(p_id,p_query_writer,p_query_content,p_openable)
+		values(#{p_id},#{p_query_writer},#{p_query_content},#{p_openable})
+	</insert>
+
+	<select id="list_reply" resultType="com.example.domain.PReplyVO">
+		select * from
+		tbl_purchase_reply
+		where p_query_id = #{p_query_id}
+	</select>
+
+	<update id="update_replystate_query_purchase">
+		update tbl_purchase_query set p_reply_state = "답변완료"
+		where p_query_id = #{p_query_id}
+	</update>
+
+	<delete id="delete_query">
+		delete from tbl_purchase_query
+		where p_query_id = #{p_query_id}
+	</delete>
+	
+	<update id="update_cnt_purchase">
+		update tbl_purchase set p_cnt_member = p_cnt_member + #{value}
+		where id= #{id}
+	</update>
+</mapper>
